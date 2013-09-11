@@ -1,6 +1,6 @@
 # Trusted cloud broker #
 
-The Trusted Cloud Broker (TCB) enables storing data securly in a variety of clouds, by keeping the encryption keys separated from the data storage.
+The Trusted Cloud Broker (TCB) enables storing data securely in a variety of clouds, by keeping the encryption keys separated from the data storage.
 
 *Primary use case: provide an easy way to store data safe from prying eyes in the cloud with a minimal local setup*
 
@@ -29,7 +29,7 @@ Backends that are supported out of the box:
 * Amazon S3
 * Openstack Swift (tested against Rackspace UK)
 
-The metatdata stores are pluggable as well:
+The metadata stores are pluggable as well:
 * memory backed (for quick tests)
 * file-based (for single node deployments
 * RIAK backed - for stateless, multiple node deployments
