@@ -20,7 +20,9 @@ The interface is a simple web server with a REST interface, see URLS specified b
 ## Quickstart ##
 
 Copy the tcb-sample.ini to tcb.ini
+
 go build tcb.go
+
 ./tcb
 
 Data will be stored in /tmp, metadata store is memory backed
