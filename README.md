@@ -8,7 +8,9 @@ Think of it as a /key-file/ store, to a cloud, secured.
 
 Why written in Go? Well, it basically runs on any platform, from ARM to x64, all major OSes.
 
-_TCB 101: store data to TCB -> TCB encrypts, compresses, mangles filename -> TCB stores keys and metadata locally in store -> TCB uploads data to cloud of choice._
+##TCB 101##
+
+_* store data to TCB -> TCB encrypts, compresses, mangles filename -> TCB stores keys and metadata locally in store -> TCB uploads data to cloud of choice.*_
 
 So, you would run a metadata store locally. Net result: data stored in public clouds, not accessible unless people come knocking at YOUR door, requiring the metadata.
 An additional benefit is that querying for just metadata doesn't require hitting the object store, with all latencies etc.
@@ -63,7 +65,11 @@ Then there is the option to addd key/value pairs to stored data:
 
 ##Roadmap
 - more backends (Google data store)
+- path support so we can think of ...
 - FUSE interface
+- maybe basic authentication
+- native command line tools other than curl
+- sync support (eventually)
 
 License: BSDv3.
 
