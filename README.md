@@ -35,18 +35,21 @@ Backends that are supported out of the box:
 
 The metadata stores are pluggable as well:
 * memory backed (for quick tests)
-* file-based (for single node deployments
+* file-based (for single node deployments)
 * RIAK backed - for stateless, multiple node deployments
 
 ## Command line flags ##
 
--usessl Runs with https. 
+-usessl Runs with https.
+
 -port <some_number> Runs on another port than the default 8080
+
 -config <config_file_location> The location and name of the config file, defaults to ./tcb.ini
 
 ## REST URLs
 
 Here are the URLs to post to, and you will see the various shell scripts testing this against an instance running on localhost.
+The few shell scripts will give an idea of how you can do, and what.
 
 * /exists/some/path/to/a/file   for HTTP verb HEAD. Checks whether some/path/to/a/file exists
 * /download/some/path/to/a/file   for HTTP verb GET. Downloads some/path/to/a/file if it exists
@@ -64,6 +67,8 @@ Then there is the option to addd key/value pairs to stored data:
 - every path gets replaced by a global unique id (GUID)
 - every file gets compressed locally, and encrypted before uploaded to the cloud backend
 - the encryption keys stay "on-site", i.e. on your local server, not based in the cloud
+
+So in the cloud there is just a data "BLOB" with a name like aaa-111-2222-sde32
 
 ##Roadmap
 - more backends (Google data store)
