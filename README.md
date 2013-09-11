@@ -19,6 +19,10 @@ The interface is a simple web server with a REST interface, see URLS specified b
 
 ## Quickstart ##
 
+Install Go.
+
+go get github.com/mbk/tcb/
+
 Copy the tcb-sample.ini to tcb.ini
 
 go build tcb.go
