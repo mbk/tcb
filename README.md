@@ -25,9 +25,9 @@ go get github.com/mbk/tcb/
 
 Copy the tcb-sample.ini to tcb.ini
 
-go build tcb.go
+go build github.com/mbk/tcb/
 
-./tcb
+./tcb (from the direcory where it was built by Go, depending on your environment)
 
 Data will be stored in /tmp, metadata store is memory backed
 
