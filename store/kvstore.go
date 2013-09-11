@@ -1,11 +1,11 @@
 package store
 
 import (
-	cfg "../config"
 	"bytes"
 	gob "encoding/gob"
 	"errors"
 	kv "github.com/cznic/kv"
+	cfg "github.com/mbk/tcb/config"
 	"os"
 )
 

@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"../store"
-	"./mux"
 	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
+	"github.com/mbk/tcb/handlers/mux"
+	"github.com/mbk/tcb/store"
 	"io"
 	"net/http"
 )

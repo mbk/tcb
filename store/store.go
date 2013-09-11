@@ -1,7 +1,7 @@
 package store
 
 import (
-	cfg "../config"
+	cfg "github.com/mbk/tcb/config"
 )
 
 type Store interface {

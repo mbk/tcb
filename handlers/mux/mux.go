@@ -1,8 +1,8 @@
 package mux
 
 import (
-	cfg "../../config"
 	"errors"
+	cfg "github.com/mbk/tcb/config"
 	"net/http"
 	str "strings"
 )

@@ -1,10 +1,10 @@
 package store
 
 import (
-	cfg "../config"
 	"bytes"
 	gob "encoding/gob"
 	"errors"
+	cfg "github.com/mbk/tcb/config"
 	riak "github.com/tpjg/goriakpbc"
 	//"os"
 	"strconv"

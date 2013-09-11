@@ -1,8 +1,8 @@
 package mux
 
 import (
-	mux "."
-	config "../../config"
+	config "github.com/mbk/tcb/config"
+	mux "github.com/mbk/tcb/handlers/mux"
 	http "net/http"
 	url "net/url"
 	test "testing"

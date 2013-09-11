@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"../store"
-	"./mux"
+	"github.com/mbk/tcb/handlers/mux"
+	"github.com/mbk/tcb/store"
 	"net/http"
 )
 

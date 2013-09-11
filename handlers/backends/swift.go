@@ -1,7 +1,7 @@
 package backends
 
 import (
-	"../../config"
+	"github.com/mbk/tcb/config"
 	"github.com/ncw/swift"
 	"io"
 	"os"

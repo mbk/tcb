@@ -1,7 +1,7 @@
 package backends
 
 import (
-	"../../config"
+	"github.com/mbk/tcb/config"
 	"io"
 	aws "launchpad.net/goamz/aws"
 	s3 "launchpad.net/goamz/s3"

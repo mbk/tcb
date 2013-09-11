@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"../store"
-	mux "./mux"
 	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
 	"fmt"
+	mux "github.com/mbk/tcb/handlers/mux"
+	"github.com/mbk/tcb/store"
 	"github.com/satori/uuid"
 	"io"
 	"net/http"

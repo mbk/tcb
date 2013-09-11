@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./config"
-	"./handlers"
-	"./handlers/mux"
 	"flag"
+	"github.com/mbk/tcb/config"
+	"github.com/mbk/tcb/handlers"
+	"github.com/mbk/tcb/handlers/mux"
 	"net/http"
 	"strconv"
 )

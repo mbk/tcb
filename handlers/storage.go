@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"./backends"
+	"github.com/mbk/tcb/handlers/backends"
 	"io"
 	"os"
 )
