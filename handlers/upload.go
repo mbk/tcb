@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	rand "crypto/rand"
 	"fmt"
 	mux "github.com/mbk/tcb/handlers/mux"
 	"github.com/mbk/tcb/store"
@@ -26,7 +27,15 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
-	var iv [aes.BlockSize]byte
+
+	//var iv [aes.BlockSize]byte
+
+	iv := make([]byte, aes.BlockSize)
+	n, err := io.ReadFull(rand.Reader, iv)
+	if n != len(iv) || err != nil {
+		panic(err)
+	}
+
 	stream := cipher.NewOFB(block, iv[:])
 
 	//outFile, err := os.OpenFile("/tmp/"+obfuscatedName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)

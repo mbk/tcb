@@ -10,14 +10,13 @@ import (
 )
 
 func handleDownload(to io.Writer, name string) {
-	//var err error
-	//var key, obname string
+
 	store := store.EnsureStore()
 	key, err := store.Get(name, "encr")
 	obname, err := store.Get(name, "obfuscatedName")
 	backend, err := store.Get(name, "backend")
 
-	//TBD: switch on backend type here to call GetReader
+	//Switch on backend type here to call GetReader
 	storageBackend := GetBackend(backend)
 	inFile, err := storageBackend.GetReader(obname)
 	defer inFile.Close()
