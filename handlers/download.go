@@ -42,6 +42,7 @@ func handleDownload(to io.Writer, name string) {
 	// IV.
 	hmacReadKey := []byte(hmacKey)
 	hashType := hmac.New(hsh.New, hmacReadKey)
+	hashWrapper := newNopWriter(hashType)
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
@@ -49,8 +50,9 @@ func handleDownload(to io.Writer, name string) {
 	stream := cipher.NewCFBDecrypter(block, iv[:])
 
 	reader := &cipher.StreamReader{S: stream, R: inFile}
+	toWrapped := newNopWriter(to)
 
-	multiWriter := io.MultiWriter(to, hashType)
+	multiWriter := newMultiWriterCloser(toWrapped, hashWrapper)
 
 	// Copy the input file to the output file, decrypting as we go.
 	if _, err := io.Copy(multiWriter, reader); err != nil {
