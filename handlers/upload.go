@@ -134,7 +134,7 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	//We need to flush and close before we can read  back
 	writer.Close()
-	outFile.Close()
+	multiWriter.Close()
 
 	retFile, errz := os.Open(tmpFileName)
 	if errz != nil {
@@ -155,6 +155,7 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	metadata["obfuscatedName"] = obfuscatedName
 	metadata["hmacSha256"] = string(computedHash)
 	metadata["hmacKey"] = string(hmacKey)
+	metadata["iv"] = string(iv)
 
 	return metadata, retFile, errz
 }

@@ -24,6 +24,7 @@ func handleDownload(to io.Writer, name string) {
 	backend, err := store.Get(name, "backend")
 	hmacKey, err := store.Get(name, "hmacKey")
 	computedHash, err := store.Get(name, "hmacSha256")
+	ivString, err := store.Get(name, "iv")
 
 	//Switch on backend type here to call GetReader
 	storageBackend := GetBackend(backend)
@@ -46,8 +47,8 @@ func handleDownload(to io.Writer, name string) {
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewCFBDecrypter(block, iv[:])
+	iv := []byte(ivString)
+	stream := cipher.NewCFBDecrypter(block, iv)
 
 	reader := &cipher.StreamReader{S: stream, R: inFile}
 	toWrapped := newNopWriter(to)
