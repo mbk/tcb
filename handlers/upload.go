@@ -81,8 +81,8 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	metadata["encr"] = string(key[0:])
 	metadata["length"] = strconv.FormatInt(length, 10)
 	metadata["obfuscatedName"] = obfuscatedName
-	metadata["hmacsha256"] = string(computedHash)
-	metadata["hmackey"] = string(hmacKey)
+	metadata["hmacSha256"] = string(computedHash)
+	metadata["hmacKey"] = string(hmacKey)
 
 	return metadata, retFile, errz
 }
