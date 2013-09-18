@@ -200,6 +200,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		store.Put(path, "length", metadata["length"])
 		store.Put(path, "obfuscatedName", metadata["obfuscatedName"])
 		store.Put(path, "backend", backend)
+		store.Put(path, "hmacSha256", metadata["hmacSha256"])
+		store.Put(path, "hmacKey", metadata["hmacKey"])
+		store.Put(path, "iv", metadata["iv"])
 
 		fmt.Fprint(w, "Uploaded "+path+" for "+backend)
 
