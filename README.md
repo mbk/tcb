@@ -61,7 +61,7 @@ The few shell scripts will give an idea of how you can do, and what.
 * /upload/some/path/to/a/file/to/{backend}   for HTTP verb PUT, POST. Uploads some/path/to/a/file to the backend specified in {backend}; currently local, s3, or swift are valid values. This gives the option to be specific. Note that downloads magically will fetch the file from the backend where it was stored.
 * /delete/some/path/to/a/file   for HTTP verb DELETE. Deletes some/path/to/a/file from its backend
 	
-Then there is the option to addd key/value pairs to stored data:
+Then there is the option to add key/value pairs to stored data:
 
 * /metadata/some/path/key/a/value/b for HTTP verb PUT: Sets the value of key "a" to "b" for some/path
 * /metadata/some/path/key/a/ for HTTP verb GET: Gets the value of key "a" for some/path
