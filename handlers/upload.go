@@ -3,7 +3,9 @@ package handlers
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	hmac "crypto/hmac"
 	rand "crypto/rand"
+	hsh "crypto/sha256"
 	"fmt"
 	mux "github.com/mbk/tcb/handlers/mux"
 	"github.com/mbk/tcb/store"
@@ -27,11 +29,15 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
-
-	//var iv [aes.BlockSize]byte
+	hmacKey := make([]byte, 32)
+	n, err := io.ReadFull(rand.Reader, hmacKey)
+	if n != len(hmacKey) || err != nil {
+		panic(err)
+	}
+	hashType := hmac.New(hsh.New, hmacKey)
 
 	iv := make([]byte, aes.BlockSize)
-	n, err := io.ReadFull(rand.Reader, iv)
+	n, err = io.ReadFull(rand.Reader, iv)
 	if n != len(iv) || err != nil {
 		panic(err)
 	}
@@ -45,7 +51,9 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	defer outFile.Close()
 
-	writer := &cipher.StreamWriter{S: stream, W: outFile}
+	multiWriter := io.MultiWriter(outFile, hashType)
+
+	writer := &cipher.StreamWriter{S: stream, W: multiWriter}
 	defer writer.Close()
 	// Copy the input file to the output file, encrypting as we go.
 	_, err = io.Copy(writer, in)
@@ -60,6 +68,9 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	if errz != nil {
 		panic(errz)
 	}
+
+	computedHash := make([]byte, hashType.Size())
+	computedHash = hashType.Sum(computedHash)
 	//Stat the temp file, so we have the real length
 	stat, err := os.Stat(tmpFileName)
 	if err != nil {
@@ -70,6 +81,8 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	metadata["encr"] = string(key[0:])
 	metadata["length"] = strconv.FormatInt(length, 10)
 	metadata["obfuscatedName"] = obfuscatedName
+	metadata["hmacsha256"] = string(computedHash)
+	metadata["hmackey"] = string(hmacKey)
 
 	return metadata, retFile, errz
 }
