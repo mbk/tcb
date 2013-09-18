@@ -36,7 +36,7 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 		panic(err)
 	}
 
-	stream := cipher.NewOFB(block, iv[:])
+	stream := cipher.NewCFBEncrypter(block, iv[:])
 
 	//outFile, err := os.OpenFile("/tmp/"+obfuscatedName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	outFile, err := os.OpenFile(tmpFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)

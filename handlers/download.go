@@ -32,7 +32,7 @@ func handleDownload(to io.Writer, name string) {
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
 	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
+	stream := cipher.NewCFBDecrypter(block, iv[:])
 
 	reader := &cipher.StreamReader{S: stream, R: inFile}
 	// Copy the input file to the output file, decrypting as we go.
