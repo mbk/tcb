@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
 	"fmt"
@@ -37,9 +36,7 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	defer outFile.Close()
 
-	compress := gzip.NewWriter(outFile)
-
-	writer := &cipher.StreamWriter{S: stream, W: compress}
+	writer := &cipher.StreamWriter{S: stream, W: outFile}
 	defer writer.Close()
 	// Copy the input file to the output file, encrypting as we go.
 	_, err = io.Copy(writer, in)
