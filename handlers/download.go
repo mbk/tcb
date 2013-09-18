@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	//"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
 	"github.com/mbk/tcb/handlers/mux"
@@ -25,12 +24,6 @@ func handleDownload(to io.Writer, name string) {
 	if err != nil {
 		panic(err)
 	}
-
-	//decompress, err := gzip.NewReader(inFile)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer decompress.Close()
 
 	block, err := aes.NewCipher([]byte(key))
 	if err != nil {
