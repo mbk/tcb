@@ -73,7 +73,7 @@ func (kv *KVStore) Put(name string, key string, value string) (e error) {
 
 func (kv *KVStore) Get(name string, key string) (value string, err error) {
 	val := make([]byte, 16384)
-	_, e := kv.kv.Get(val, []byte(name))
+	val, e := kv.kv.Get(val, []byte(name))
 
 	if e != nil {
 		err = errors.New("Could not execute Get on Key value store for key " + name)
