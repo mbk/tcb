@@ -16,7 +16,7 @@ import (
 	"strconv"
 )
 
-func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
+func storeUploadTemp(path string, in io.Reader, metadata store.Store) (*os.File, error) {
 	key := (uuid.NewV4())
 	obfuscatedName := (uuid.NewV4().String())
 
@@ -78,15 +78,15 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 		panic(err)
 	}
 	length := stat.Size()
-	metadata := make(map[string]string)
-	metadata["encr"] = string(key[0:])
-	metadata["length"] = strconv.FormatInt(length, 10)
-	metadata["obfuscatedName"] = obfuscatedName
-	metadata["hmacSha256"] = string(computedHash)
-	metadata["hmacKey"] = string(hmacKey)
-	metadata["iv"] = string(iv)
 
-	return metadata, retFile, errz
+	metadata.Put(path, "encr", string(key[0:]))
+	metadata.Put(path, "length", strconv.FormatInt(length, 10))
+	metadata.Put(path, "obfuscatedName", obfuscatedName)
+	metadata.Put(path, "hmacSha256", string(computedHash))
+	metadata.Put(path, "hmacKey", string(hmacKey))
+	metadata.Put(path, "iv", string(iv))
+
+	return retFile, errz
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +109,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	switch m {
 
 	case "POST", "PUT":
-
-		metadata, tmpFile, err := storeUploadTemp(r.Body)
+		metadata := store.EnsureStore()
+		tmpFile, err := storeUploadTemp(path, r.Body, metadata)
 		tmpPath := tmpFile.Name()
 		defer tmpFile.Close()
 		//Delete the temp file
@@ -118,20 +118,15 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		store := store.EnsureStore()
+
 		storageBackend := GetBackend(backend)
-		errz := storageBackend.StoreObject(metadata["obfuscatedName"], tmpFile, metadata)
-		if errz != nil {
+		obfuscatedName, err := metadata.Get(path, "obfuscatedName")
+		errz := storageBackend.StoreObject(obfuscatedName, tmpFile, path, metadata)
+		if err != nil || errz != nil {
 			panic(errz)
 		}
-
-		store.Put(path, "encr", metadata["encr"])
-		store.Put(path, "length", metadata["length"])
-		store.Put(path, "obfuscatedName", metadata["obfuscatedName"])
-		store.Put(path, "backend", backend)
-		store.Put(path, "hmacSha256", metadata["hmacSha256"])
-		store.Put(path, "hmacKey", metadata["hmacKey"])
-		store.Put(path, "iv", metadata["iv"])
+		//We set the backend here, after all is stored etc.
+		metadata.Put(path, "backend", backend)
 
 		fmt.Fprint(w, "Uploaded "+path+" for "+backend)
 
