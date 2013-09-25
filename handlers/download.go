@@ -53,9 +53,10 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			e := err.(error)
-			//http.Error(w, "Failed to download file, probably doesn't exist.", 500)
-			http.Error(w, e.Error(), 500)
+			http.Error(w, "Failed to download file, probably doesn't exist.", 500)
+			//This can be commented in in stead of the above for debuging purposes
+			//e := err.(error)
+			//http.Error(w, e.Error(), 500)
 		}
 	}()
 	//We will use this later on to get the filename etc.
