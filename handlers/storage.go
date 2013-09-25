@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"github.com/mbk/tcb/handlers/backends"
+	"github.com/mbk/tcb/store"
 	"io"
 	"os"
 )
 
 type StorageBackend interface {
 	GetReader(name string) (io.ReadCloser, error)
-	StoreObject(name string, source *os.File, metadata map[string]string) error
+	StoreObject(name string, source *os.File, path string, metadata store.Store) error
 	DeleteObject(name string) error
 }
 
