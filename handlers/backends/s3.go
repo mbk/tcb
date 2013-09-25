@@ -2,6 +2,7 @@ package backends
 
 import (
 	"github.com/mbk/tcb/config"
+	"github.com/mbk/tcb/store"
 	"io"
 	aws "launchpad.net/goamz/aws"
 	s3 "launchpad.net/goamz/s3"
@@ -19,8 +20,9 @@ func (s3b *S3Backend) GetReader(name string) (io.ReadCloser, error) {
 	return s3b.bucket.GetReader(name)
 }
 
-func (s3b *S3Backend) StoreObject(name string, source *os.File, metadata map[string]string) error {
-	length, err := strconv.ParseInt(metadata["length"], 10, 64)
+func (s3b *S3Backend) StoreObject(name string, source *os.File, path string, metadata store.Store) error {
+	strlength, err := metadata.Get(path, "length")
+	length, err := strconv.ParseInt(strlength, 10, 64)
 	defer source.Close()
 
 	if err != nil {

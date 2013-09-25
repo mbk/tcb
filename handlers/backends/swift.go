@@ -2,6 +2,7 @@ package backends
 
 import (
 	"github.com/mbk/tcb/config"
+	"github.com/mbk/tcb/store"
 	"github.com/ncw/swift"
 	"io"
 	"os"
@@ -22,7 +23,7 @@ func (sw *swiftBackend) GetReader(name string) (io.ReadCloser, error) {
 		return objOF, nil
 	}
 }
-func (sw *swiftBackend) StoreObject(name string, source *os.File, metadata map[string]string) error {
+func (sw *swiftBackend) StoreObject(name string, source *os.File, path string, metadata store.Store) error {
 	objCF, err := sw.conn.ObjectCreate(containerName, name, false, "", "application/binary", nil)
 	if err != nil {
 		panic(err)
