@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
+	hmac "crypto/hmac"
+	rand "crypto/rand"
+	hsh "crypto/sha256"
 	"fmt"
 	mux "github.com/mbk/tcb/handlers/mux"
 	"github.com/mbk/tcb/store"
@@ -27,8 +29,21 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
+	hmacKey := make([]byte, 32)
+	n, err := io.ReadFull(rand.Reader, hmacKey)
+	if n != len(hmacKey) || err != nil {
+		panic(err)
+	}
+	hashType := hmac.New(hsh.New, hmacKey)
+	hashWrapper := newNopWriter(hashType)
+
+	iv := make([]byte, aes.BlockSize)
+	n, err = io.ReadFull(rand.Reader, iv)
+	if n != len(iv) || err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv[:])
 
 	//outFile, err := os.OpenFile("/tmp/"+obfuscatedName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	outFile, err := os.OpenFile(tmpFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
@@ -37,9 +52,9 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	defer outFile.Close()
 
-	compress := gzip.NewWriter(outFile)
+	multiWriter := newMultiWriterCloser(outFile, hashWrapper)
 
-	writer := &cipher.StreamWriter{S: stream, W: compress}
+	writer := &cipher.StreamWriter{S: stream, W: multiWriter}
 	defer writer.Close()
 	// Copy the input file to the output file, encrypting as we go.
 	_, err = io.Copy(writer, in)
@@ -48,12 +63,15 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	//We need to flush and close before we can read  back
 	writer.Close()
-	outFile.Close()
+	multiWriter.Close()
 
 	retFile, errz := os.Open(tmpFileName)
 	if errz != nil {
 		panic(errz)
 	}
+
+	computedHash := make([]byte, hashType.Size())
+	computedHash = hashType.Sum(computedHash)
 	//Stat the temp file, so we have the real length
 	stat, err := os.Stat(tmpFileName)
 	if err != nil {
@@ -64,6 +82,9 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	metadata["encr"] = string(key[0:])
 	metadata["length"] = strconv.FormatInt(length, 10)
 	metadata["obfuscatedName"] = obfuscatedName
+	metadata["hmacSha256"] = string(computedHash)
+	metadata["hmacKey"] = string(hmacKey)
+	metadata["iv"] = string(iv)
 
 	return metadata, retFile, errz
 }
@@ -108,6 +129,9 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		store.Put(path, "length", metadata["length"])
 		store.Put(path, "obfuscatedName", metadata["obfuscatedName"])
 		store.Put(path, "backend", backend)
+		store.Put(path, "hmacSha256", metadata["hmacSha256"])
+		store.Put(path, "hmacKey", metadata["hmacKey"])
+		store.Put(path, "iv", metadata["iv"])
 
 		fmt.Fprint(w, "Uploaded "+path+" for "+backend)
 
