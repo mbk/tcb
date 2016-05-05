@@ -15,7 +15,7 @@ func (store *FileStore) StoreObject(name string, source *os.File, path string, m
 
 	dest, err := os.OpenFile(store.destDir+"/"+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	_, err = io.Copy(dest, source)

@@ -35,7 +35,7 @@ func (s3b *S3Backend) StoreObject(name string, source *os.File, path string, met
 		//err = s3b.bucket.Put(name, data, "application/binary", s3.Private)
 		err = s3b.bucket.PutReader(name, source, length, "application/binary", s3.Private)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 	return err
