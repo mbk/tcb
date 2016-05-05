@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	hmac "crypto/hmac"
 	hsh "crypto/sha256"
+	"errors"
 	"github.com/mbk/tcb/handlers/mux"
 	"github.com/mbk/tcb/store"
 	"io"
@@ -66,7 +67,8 @@ func handleDownload(to io.Writer, name string) {
 
 	if !bytes.Equal(readHash, originalHash) {
 		logger.Println("hashes do not match")
-		//TBD mayne panic?
+		panic(errors.New("Hashes do not match"))
+		return 
 	}
 }
 
@@ -74,10 +76,10 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			http.Error(w, "Failed to download file, probably doesn't exist.", 500)
+			//http.Error(w, "Failed to download file, probably doesn't exist.", 500)
 			//This can be commented in in stead of the above for debuging purposes
-			//e := err.(error)
-			//http.Error(w, e.Error(), 500)
+			e := err.(error)
+			http.Error(w, e.Error(), 500)
 		}
 	}()
 	//We will use this later on to get the filename etc.
