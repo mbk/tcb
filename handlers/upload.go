@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"compress/gzip"
 	"crypto/aes"
 	"crypto/cipher"
+	hmac "crypto/hmac"
+	rand "crypto/rand"
+	hsh "crypto/sha256"
 	"fmt"
 	mux "github.com/mbk/tcb/handlers/mux"
 	"github.com/mbk/tcb/store"
@@ -14,7 +16,7 @@ import (
 	"strconv"
 )
 
-func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
+func storeUploadTemp(path string, in io.Reader, metadata store.Store) (*os.File, error) {
 	key := (uuid.NewV4())
 	obfuscatedName := (uuid.NewV4().String())
 
@@ -27,8 +29,21 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 
 	// If the key is unique for each ciphertext, then it's ok to use a zero
 	// IV.
-	var iv [aes.BlockSize]byte
-	stream := cipher.NewOFB(block, iv[:])
+	hmacKey := make([]byte, 32)
+	n, err := io.ReadFull(rand.Reader, hmacKey)
+	if n != len(hmacKey) || err != nil {
+		panic(err)
+	}
+	hashType := hmac.New(hsh.New, hmacKey)
+	hashWrapper := newNopWriter(hashType)
+
+	iv := make([]byte, aes.BlockSize)
+	n, err = io.ReadFull(rand.Reader, iv)
+	if n != len(iv) || err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv[:])
 
 	//outFile, err := os.OpenFile("/tmp/"+obfuscatedName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	outFile, err := os.OpenFile(tmpFileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
@@ -37,9 +52,9 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	defer outFile.Close()
 
-	compress := gzip.NewWriter(outFile)
+	multiWriter := newMultiWriterCloser(outFile, hashWrapper)
 
-	writer := &cipher.StreamWriter{S: stream, W: compress}
+	writer := &cipher.StreamWriter{S: stream, W: multiWriter}
 	defer writer.Close()
 	// Copy the input file to the output file, encrypting as we go.
 	_, err = io.Copy(writer, in)
@@ -48,24 +63,30 @@ func storeUploadTemp(in io.Reader) (map[string]string, *os.File, error) {
 	}
 	//We need to flush and close before we can read  back
 	writer.Close()
-	outFile.Close()
+	multiWriter.Close()
 
 	retFile, errz := os.Open(tmpFileName)
 	if errz != nil {
 		panic(errz)
 	}
+
+	computedHash := make([]byte, hashType.Size())
+	computedHash = hashType.Sum(computedHash)
 	//Stat the temp file, so we have the real length
 	stat, err := os.Stat(tmpFileName)
 	if err != nil {
 		panic(err)
 	}
 	length := stat.Size()
-	metadata := make(map[string]string)
-	metadata["encr"] = string(key[0:])
-	metadata["length"] = strconv.FormatInt(length, 10)
-	metadata["obfuscatedName"] = obfuscatedName
 
-	return metadata, retFile, errz
+	metadata.Put(path, "encr", string(key[0:]))
+	metadata.Put(path, "length", strconv.FormatInt(length, 10))
+	metadata.Put(path, "obfuscatedName", obfuscatedName)
+	metadata.Put(path, "hmacSha256", string(computedHash))
+	metadata.Put(path, "hmacKey", string(hmacKey))
+	metadata.Put(path, "iv", string(iv))
+
+	return retFile, errz
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,8 +109,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	switch m {
 
 	case "POST", "PUT":
-
-		metadata, tmpFile, err := storeUploadTemp(r.Body)
+		metadata := store.EnsureStore()
+		tmpFile, err := storeUploadTemp(path, r.Body, metadata)
 		tmpPath := tmpFile.Name()
 		defer tmpFile.Close()
 		//Delete the temp file
@@ -97,17 +118,15 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		store := store.EnsureStore()
+
 		storageBackend := GetBackend(backend)
-		errz := storageBackend.StoreObject(metadata["obfuscatedName"], tmpFile, metadata)
-		if errz != nil {
+		obfuscatedName, err := metadata.Get(path, "obfuscatedName")
+		errz := storageBackend.StoreObject(obfuscatedName, tmpFile, path, metadata)
+		if err != nil || errz != nil {
 			panic(errz)
 		}
-
-		store.Put(path, "encr", metadata["encr"])
-		store.Put(path, "length", metadata["length"])
-		store.Put(path, "obfuscatedName", metadata["obfuscatedName"])
-		store.Put(path, "backend", backend)
+		//We set the backend here, after all is stored etc.
+		metadata.Put(path, "backend", backend)
 
 		fmt.Fprint(w, "Uploaded "+path+" for "+backend)
 

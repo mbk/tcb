@@ -2,6 +2,7 @@ package backends
 
 import (
 	"github.com/mbk/tcb/config"
+	"github.com/mbk/tcb/store"
 	"io"
 	"os"
 )
@@ -10,7 +11,7 @@ type FileStore struct {
 	destDir string
 }
 
-func (store *FileStore) StoreObject(name string, source *os.File, metadata map[string]string) error {
+func (store *FileStore) StoreObject(name string, source *os.File, path string, metadata store.Store) error {
 
 	dest, err := os.OpenFile(store.destDir+"/"+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
