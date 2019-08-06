@@ -68,7 +68,7 @@ func handleDownload(to io.Writer, name string) {
 	if !bytes.Equal(readHash, originalHash) {
 		logger.Println("hashes do not match")
 		panic(errors.New("Hashes do not match"))
-		return 
+		return
 	}
 }
 
@@ -77,7 +77,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			//http.Error(w, "Failed to download file, probably doesn't exist.", 500)
-			//This can be commented in in stead of the above for debuging purposes
+			//This can be commented in in stead of the above for debugging purposes
 			e := err.(error)
 			http.Error(w, e.Error(), 500)
 		}
